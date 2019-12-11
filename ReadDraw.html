@@ -1,0 +1,171 @@
+<html>
+<head>
+<style>
+	body,input, table {font-size:20px; text-align:center;}
+    input[type=file]{width:600px; text-align:left;}
+	input[type=text]{width:100px;text-align:right;}
+	.myMenu{
+		position:absolute; left:10%; top:10%; 
+		 width:180px; height:245px;
+		 background-color:#e0e0ff; 
+		 padding: 30px 20px; 
+		 border-radius:10px;
+		 border-style:solid; border-color:#0000ff; 
+		 box-shadow: 3px 3px 6px #000000;
+		 visibility: hidden;
+		 z-index:1; 
+	}
+	.myX {
+		position:absolute; left: 87%; top: 0%;
+        font: bold 30px Arial;
+	}
+	#chBx {
+		font-weight:700;
+	}
+	#textOfChb{
+		font-weight:700;
+		position:absolute;
+		width:120px;
+	}
+</style>
+<script>
+
+function myProcessing(){
+    myFile=myInput.files[0];
+    //alert(myFile.size);
+    myReader=new FileReader();
+    myReader.readAsText(myFile);
+	
+   // on end of load file do this
+    myReader.onload=function(){ 
+       myBuffer=myReader.result;
+       //alert(myBuffer.length);
+       //alert(myBuffer); 
+  //func
+	myBuffer= myBuffer.trim();
+	myArray=myBuffer.split(","); 
+	 //alert(myArray.length);
+	 for (i=0; i<myArray.length; i++){
+		 XY[i]=eval(myArray[i]);
+		 //alert( XY[i] );
+	  }//for i
+	drawFrame();
+	drawAxis();
+	drawGraph(XY);
+	
+	
+	}
+}
+
+function pX(x){ return grW*(x-xMin)/(xMax-xMin) }
+function pY(y){ return grH*(yMax-y)/(yMax-yMin) }
+
+function drawFrame(){
+  gr.fillStyle='#ffffff'; gr.fillRect(0,0,grW,grH);
+  gr.strokeStyle='#c0c0ff'; gr.strokeRect(1,1,grW-2,grH-2);
+}//drawFrame
+
+function drawAxis(){ 
+  gr.fillStyle='#0000ff'; 
+  gr.fillRect(0,pY(0),grW,3); // y=0
+  gr.fillRect(pX(0),0,3,grH); // x=0
+  gr.font="30px Arial";
+  gr.fillText('Y', pX(0) - 30 , 30);
+  gr.fillText('X', grW-30, pY(0) - 10);
+}//drawAxis
+
+function drawGraph(xy){
+  var iMax=xy.length/2; //pairs
+  var widthRect = 10, heightRect = 10;
+  gr.beginPath();
+  for (i=0; i<iMax; i++){ 
+	 gr.lineTo(pX(xy[i*2]),pY(xy[i*2+1]));
+  }//for i
+  gr.strokeStyle='#000000'; gr.stroke();
+  if( viewPoint ) {
+	  gr.beginPath();
+	  gr.fillStyle='#ff0000';
+	  for (i=0; i<iMax; i++){ 
+		 gr.fillRect(pX(xy[i*2]) - widthRect / 2,pY(xy[i*2+1]) - heightRect / 2,widthRect,heightRect)
+	  }//for i
+	  gr.strokeStyle='#000000'; gr.stroke();
+  }
+}//drawGraph
+
+function setMinMax(){
+	viewPoint = chBx.checked;
+    xMin=eval(iXmin.value); xMax=eval(iXmax.value);
+    yMin=eval(iYmin.value); yMax=eval(iYmax.value);
+	drawFrame();
+    drawAxis();
+    drawGraph(XY);    
+}//setMinMax
+
+function showMinMax(){
+	chBx.checked = viewPoint;
+    iXmin.value=xMin; iXmax.value=xMax;
+    iYmin.value=yMin; iYmax.value=yMax;
+    menu.style.visibility='visible';
+}//showMinMax
+
+function fromFunc( ) {
+	if( myFnc.value == "" ) 
+		return;
+		
+	var myArray = [];
+	var Nmax = 10;
+	var str = myFnc.value ;
+	
+	for( i = 1; i <= Nmax; i++ ) {
+		temp = str.replace(/x/g,i);
+		myArray[i] = eval(temp) ;
+	}
+	
+	for (i=0; i<myArray.length; i++){
+		 XY[i]=eval(myArray[i]);
+		 //alert( XY[i] );
+	  }//for i
+	drawFrame();
+	drawAxis();
+	drawGraph(myArray);
+	
+}
+
+
+</script>
+</head>
+<body>
+	<input id=myInput type=file onChange=myProcessing() style="border:1px solid Red"> 
+	<input type=button onclick = "fromFunc()" value="Задать формулой" >
+	<input id=myFnc type=text >
+	<canvas id=myPic onClick="showMinMax()"></canvas>
+	<script>
+		xMin=-1; xMax=5; yMin=-1; yMax=3;
+		var viewPoint = true;
+		winH=window.innerHeight; winW=window.innerWidth;
+		grH=winH - 50; grW=winW - 25;
+		myPic.height=grH; myPic.width=grW;
+		gr=myPic.getContext('2d'); 
+		gr.lineWidth = 3;
+		drawFrame();
+		drawAxis();
+		XY=[];
+	</script>
+</body>
+	<div id=menu class=myMenu >
+		<div class=myX onClick="menu.style.visibility='hidden'">X</div>
+		<table>
+			<tr><td>xMin=</td><td><input id=iXmin type=text></td></tr> 
+			<tr><td>xMax=</td><td><input id=iXmax type=text></td></tr> 
+			<tr><td colspan=2><hr></td></tr> 
+			<tr><td>yMin=</td><td><input id=iYmin type=text></td></tr> 
+			<tr><td>yMax=</td><td><input id=iYmax type=text></td></tr> 
+			<tr><td colspan=2><hr></td></tr> 
+			<tr><td id='specTd'><input type=checkbox id=chBx><span id='textOfChb'>Show points</span></td></tr>
+			<tr><td colspan=2><hr></td></tr> 
+			<tr><td colspan=2><input type=button value=Set onClick='setMinMax()'></td></tr> 
+		</table>
+		
+	</div>
+
+</html>

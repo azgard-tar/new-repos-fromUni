@@ -1,0 +1,105 @@
+<html>
+<head>
+<style>
+	body,input {font-size:20px; text-align:center}
+    input[type=file]{width:600px; text-align:left}
+	.myMenu{
+		position:absolute; left:10%; top:10%; 
+		 width:180px; height:200px;
+		 background-color:#e0e0ff; 
+		 padding: 30px 20px; 
+		 border-radius:10px;
+		 border-style:solid; border-color:#0000ff; 
+		 box-shadow: 3px 3px 6px #000000;
+		 /*   visibility: hidden; */
+		 z-index:1; 
+	}
+</style>
+<script>
+
+function startGraph(){
+	xMin=-1; xMax=5; yMin=-1; yMax=3;
+	winH=window.innerHeight; winW=window.innerWidth;
+	grH=winH - 50; grW=winW - 25;
+	myPic.height=grH; myPic.width=grW;
+	gr=myPic.getContext('2d'); 
+	gr.lineWidth = 3;
+	drawFrame();
+	drawAxis();
+	XY=[];
+}
+
+function myProcessing(){
+    myFile=myInput.files[0];
+    //alert(myFile.size);
+    myReader=new FileReader();
+    myReader.readAsText(myFile);
+	
+   // on end of load file do this
+    myReader.onload=function(){ 
+       myBuffer=myReader.result;
+       //alert(myBuffer.length);
+       //alert(myBuffer); 
+  //func
+	myBuffer= myBuffer.trim();
+	myArray=myBuffer.split(","); 
+	var XY = Array();
+	 //alert(myArray.length);
+	 for (i=0; i<myArray.length; i++){
+		 XY[i]=eval(myArray[i]);
+		 //alert( XY[i] );
+	  }//for i
+	drawFrame();
+	drawAxis();
+	drawGraph(XY);
+	
+	
+	}
+}
+
+function pX(x){ return grW*(x-xMin)/(xMax-xMin) }
+function pY(y){ return grH*(yMax-y)/(yMax-yMin) }
+
+function drawFrame(){
+  gr.fillStyle='#ffffff'; gr.fillRect(0,0,grW,grH);
+  gr.strokeStyle='#c0c0ff'; gr.strokeRect(1,1,grW-2,grH-2);
+}//drawFrame
+
+function drawAxis(){ 
+  gr.fillStyle='#0000ff'; 
+  gr.fillRect(0,pY(0),grW,5); // y=0
+  gr.fillRect(pX(0),0,5,grH); // x=0
+  gr.font="30px Arial";
+  gr.fillText('Y', pX(0) - 20 , 30);
+  gr.fillText('X', grW-30, pY(0));
+}//drawAxis
+
+function drawGraph(xy){
+  var iMax=xy.length/2; //pairs
+  var widthRect = 10, heightRect = 10;
+  gr.beginPath();
+  for (i=0; i<iMax; i++){ 
+	 gr.lineTo(pX(xy[i*2]),pY(xy[i*2+1]));
+  }//for i
+  gr.strokeStyle='#000000'; gr.stroke();
+  
+  gr.beginPath();
+  gr.fillStyle='#ff0000';
+  for (i=0; i<iMax; i++){ 
+	 gr.fillRect(pX(xy[i*2]) - widthRect / 2,pY(xy[i*2+1]) - heightRect / 2,widthRect,heightRect)
+  }//for i
+  gr.strokeStyle='#000000'; gr.stroke();
+}//drawGraph
+
+
+
+</script>
+</head>
+<body onload = "startGraph()">
+<input id=myInput type=file onChange=myProcessing() style="border:1px solid Red"> 
+<canvas id=myPic></canvas>
+</body>
+<div id=menu class=myMenu >
+	
+</div>
+</html>
